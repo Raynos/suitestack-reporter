@@ -160,4 +160,6 @@ function Reporter(name, test) {
     }
 
     reporter.start(test)
+
+    return reporter
 }

@@ -20,6 +20,7 @@ var mocha = require("./lib/mocha"),
 extend(Reporter, EventEmitter, {
     start: function (test) {
         this.emit("start")
+        this.test = test
 
         test.on("test", this.testStart)
         test.on("end", this.end)
@@ -28,6 +29,14 @@ extend(Reporter, EventEmitter, {
         test.on("error", this.testFail)
     },
     end: function () {
+        var test = this.test
+
+        test.removeListener("test", this.testStart)
+        test.removeListener("end", this.end)
+        test.removeListener("test end", this.testEnd)
+        test.removeListener("pass", this.testPass)
+        test.removeListener("error", this.testFail)
+
         this.emit("end")
     },
     testStart: function (name, node) {

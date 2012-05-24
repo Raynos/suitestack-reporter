@@ -138,12 +138,17 @@ var Test = {
 module.exports = Reporter
 
 function Reporter(name, test) {
-    var MochaReporter = mocha.reporters[name],
-        reporter = bindAll({}, Reporter, {
-            total: 0
-        })
+    var reporter = bindAll({}, Reporter, {
+        total: 0
+    })
 
-    new MochaReporter(reporter)
+    if (name.indexOf("mocha-") === 0) {
+        name = name.substr(6)
+
+        var MochaReporter = mocha.reporters[name]
+
+        new MochaReporter(reporter)
+    }
 
     reporter.start(test)
 }

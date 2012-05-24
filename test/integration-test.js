@@ -2,7 +2,7 @@ var test = require("suitestack"),
     reporter = require("suitestack-reporter"),
     assert = require("assert")
 
-reporter("Spec", test)
+reporter("mocha-Spec", test)
 
 test("async tests work", function (_, done) {
     setTimeout(function () {

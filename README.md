@@ -7,7 +7,7 @@ A reporter unit that supports mocha
     var test = require("suitestack"),
         reporter = require("suitestack-reporter")
 
-    reporter("Spec", test)
+    reporter("mocha-Spec", test)
 
     test("a test", function (test) {
         test("an inner test", function () {

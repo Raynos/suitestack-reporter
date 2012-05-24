@@ -629,12 +629,17 @@ var Test = {
 module.exports = Reporter
 
 function Reporter(name, test) {
-    var MochaReporter = mocha.reporters[name],
-        reporter = bindAll({}, Reporter, {
-            total: 0
-        })
+    var reporter = bindAll({}, Reporter, {
+        total: 0
+    })
 
-    new MochaReporter(reporter)
+    if (name.indexOf("mocha-") === 0) {
+        name = name.substr(6)
+
+        var MochaReporter = mocha.reporters[name]
+
+        new MochaReporter(reporter)
+    }
 
     reporter.start(test)
 }
@@ -4049,7 +4054,7 @@ require.define("/browser-test.js", function (require, module, exports, __dirname
     reporter = require("suitestack-reporter"),
     assert = require("assert")
 
-reporter("HTML", test)
+reporter("mocha-HTML", test)
 
 test("async tests work", function (_, done) {
     setTimeout(function () {

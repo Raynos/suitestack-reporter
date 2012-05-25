@@ -1,6 +1,6 @@
 {
     "name": "suitestack-reporter",
-    "version": "0.1.3",
+    "version": "0.1.4",
     "description": "A reporter for suitestack",
     "keywords": [],
     "author": "Raynos <raynos2@gmail.com>",
@@ -34,7 +34,7 @@
         "bindAll": "1.0.0"
     },
     "devDependencies": {
-        "suitestack": "0.1.2",
+        "suitestack": "0.1.4",
         "browserify": "git://github.com/Raynos/node-browserify.git"
     }
 }

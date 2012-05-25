@@ -69,7 +69,7 @@ extend(Reporter, EventEmitter, {
         }
     },
     testFail: function (err, name) {
-        //console.log("testFail runSuite", err)
+        //console.log("testFail runSuite", err, err.stack)
         var type = this._runSuite()
         //console.log("failed", name, type)
 
@@ -94,7 +94,7 @@ extend(Reporter, EventEmitter, {
         node = node || this.suite.node
         var parent = node.parent
 
-        if (parent === null) {
+        if (parent === undefined) {
             return
         }
 
@@ -108,8 +108,8 @@ extend(Reporter, EventEmitter, {
         //console.log("found parent", node)
         var parent = node.parent
 
-        if (parent === null || !parent.testName) {
-            return null
+        if (parent === undefined || !parent.testName) {
+            return
         } else {
             return this._createSuite(parent.testName, parent)
         }

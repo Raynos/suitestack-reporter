@@ -351,44 +351,14 @@ module.exports = {"main":"index"}
 require.define("/node_modules/suitestack/index.js", function (require, module, exports, __dirname, __filename) {
 var extend = require("xtend"),
     EventEmitter = require("events").EventEmitter.prototype,
-    test = makeTestAndRun(null),
+    test = makeTest(),
     currentEmitter
 
-test.makeTest = makeTestAndRun
+test.makeTest = makeTest
 
 process.on("uncaughtException", reportError)
 
 module.exports = test
-
-function makeTestAndRun(parent) {
-    var test = extend(makeTest(parent), EventEmitter)
-
-    process.nextTick(run)
-
-    return test
-
-    function run() {
-        var node = findNode(test)
-        if (node) {
-            currentEmitter = test
-            currentEmitter.errorName = node.testName
-            runTest({
-                emitter: test, 
-                test: node, 
-                name: node.testName, 
-                block: node.block, 
-                callback: next
-            })
-        } else {
-            test.emit("end")
-        }
-
-        function next() {
-            node.block = null
-            run()
-        }
-    }
-}
 
 function makeTest(parent) {
     extend(test, {
@@ -396,14 +366,45 @@ function makeTest(parent) {
         parent: parent
     })
 
+    if (parent === undefined) {
+        extend(test, EventEmitter)
+    }
+
     return test
 
     function test(name, block) {
+        if (parent === undefined && test.nodes.length === 0) {
+            process.nextTick(run.bind(null, test))
+        }
+
         test.nodes.push(extend(makeTest(test), {
             testName: name,
             block: block
         }))
     }    
+}
+
+function run(test) {
+    var node = findNode(test)
+    if (node) {
+        currentEmitter = test
+        currentEmitter.errorName = node.testName
+        runTest({
+            emitter: test, 
+            test: node, 
+            name: node.testName, 
+            block: node.block, 
+            callback: next
+        })
+    } else {
+        test.emit("end")
+        test.nodes = []
+    }
+
+    function next() {
+        node.block = null
+        run(test)
+    }
 }
 
 function findNode(tree) {
@@ -414,11 +415,10 @@ function findNode(tree) {
             return node
         }
         node = findNode(node)
-        if (node !== null && node.block) {
+        if (node !== undefined && node.block) {
             return node
         }
     }
-    return null
 }
 
 function runTest(options) {
@@ -455,7 +455,7 @@ function reportError(err) {
     if (currentEmitter && currentEmitter._events.error) {
         currentEmitter.emit("error", err, currentEmitter.errorName)
     } else {
-        console.error("ERROR in test", err.message)
+        console.log("ERROR in test", err.message, err.stack, err)
     }
 }
 });
@@ -511,6 +511,7 @@ var mocha = require("./lib/mocha"),
 extend(Reporter, EventEmitter, {
     start: function (test) {
         this.emit("start")
+        this.test = test
 
         test.on("test", this.testStart)
         test.on("end", this.end)
@@ -519,6 +520,14 @@ extend(Reporter, EventEmitter, {
         test.on("error", this.testFail)
     },
     end: function () {
+        var test = this.test
+
+        test.removeListener("test", this.testStart)
+        test.removeListener("end", this.end)
+        test.removeListener("test end", this.testEnd)
+        test.removeListener("pass", this.testPass)
+        test.removeListener("error", this.testFail)
+
         this.emit("end")
     },
     testStart: function (name, node) {
@@ -551,7 +560,7 @@ extend(Reporter, EventEmitter, {
         }
     },
     testFail: function (err, name) {
-        //console.log("testFail runSuite", err)
+        //console.log("testFail runSuite", err, err.stack)
         var type = this._runSuite()
         //console.log("failed", name, type)
 
@@ -576,7 +585,7 @@ extend(Reporter, EventEmitter, {
         node = node || this.suite.node
         var parent = node.parent
 
-        if (parent === null) {
+        if (parent === undefined) {
             return
         }
 
@@ -590,8 +599,8 @@ extend(Reporter, EventEmitter, {
         //console.log("found parent", node)
         var parent = node.parent
 
-        if (parent === null || !parent.testName) {
-            return null
+        if (parent === undefined || !parent.testName) {
+            return
         } else {
             return this._createSuite(parent.testName, parent)
         }
@@ -642,6 +651,8 @@ function Reporter(name, test) {
     }
 
     reporter.start(test)
+
+    return reporter
 }
 });
 

@@ -206,6 +206,19 @@ if (!process.cwd) process.cwd = function () { return '.' };
 if (!process.env) process.env = {};
 if (!process.argv) process.argv = [];
 
+if (!process.removeListener) process.removeListener = function(e){
+    if ('uncaughtException' == e) {
+        window.onerror = null;
+    }
+};
+
+if (!process.on) process.on = function(e, fn) {
+    if ('uncaughtException' == e) {
+        window.onerror = fn;
+    }
+};
+
+if (!process.stdout) process.stdout = {};
 require.define("path", function (require, module, exports, __dirname, __filename) {
 function filter (xs, fn) {
     var res = [];
